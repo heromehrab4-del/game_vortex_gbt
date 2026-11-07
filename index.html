@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#07132d">
+  <title>بازی سکه Vortex Net</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07132d;
+      --cyan: #52e8ff;
+      --blue: #397bff;
+      --violet: #9b6bff;
+      --muted: #9bb2d5;
+      --panel: rgba(12, 31, 68, .82);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; min-height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      color: #f3f8ff;
+      background:
+        radial-gradient(ellipse at 50% 29%, rgba(17, 92, 207, .26), transparent 45%),
+        radial-gradient(ellipse at 8% 88%, rgba(53, 54, 189, .24), transparent 38%),
+        linear-gradient(145deg, #050b1d, #0a1b3c 56%, #07132d);
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      user-select: none;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .22;
+      background-image: linear-gradient(rgba(72, 195, 255, .11) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(72, 195, 255, .11) 1px, transparent 1px);
+      background-size: 31px 31px;
+      mask-image: radial-gradient(ellipse at center, black 10%, transparent 82%);
+    }
+    .app { position: relative; width: min(100%, 520px); min-height: 100dvh; margin: auto; padding: max(22px, env(safe-area-inset-top)) 22px max(18px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+    .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .brand { display: flex; align-items: center; gap: 9px; color: #cfe8ff; font-size: 13px; letter-spacing: .13em; font-weight: 800; }
+    .brand-mark { width: 29px; height: 29px; display: grid; place-items: center; border: 1px solid rgba(82,232,255,.6); border-radius: 9px; color: var(--cyan); box-shadow: 0 0 18px #168dff66, inset 0 0 10px #168dff44; }
+    .profile { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #c7f5ff; background: linear-gradient(145deg,#224a85,#0a1c3c); border: 1px solid #70dfff66; box-shadow: 0 0 14px #1ca8ff33; }
+    .balance-card { position: relative; padding: 17px 18px 16px; border-radius: 20px; background: linear-gradient(135deg,rgba(20,50,99,.88),rgba(10,24,55,.85)); border: 1px solid rgba(76,179,255,.33); box-shadow: 0 12px 42px #02081470, inset 0 1px #ffffff12; overflow: hidden; }
+    .balance-card::after { content: ""; position: absolute; width: 170px; height: 170px; border-radius: 50%; left: -84px; top: -112px; background: #2399ff33; filter: blur(13px); }
+    .balance-label { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 7px; }
+    .balance { display: flex; align-items: center; gap: 9px; margin-top: 5px; font-size: clamp(32px, 9vw, 43px); line-height: 1.15; font-weight: 850; letter-spacing: .025em; font-variant-numeric: tabular-nums; text-shadow: 0 0 20px #58bcff66; }
+    .balance-coin { font-size: 28px; filter: drop-shadow(0 0 8px #ffd65c99); }
+    .energy-wrap { margin-top: 18px; }
+    .energy-meta { display: flex; justify-content: space-between; color: #9eb6d8; font-size: 11px; margin-bottom: 8px; }
+    .energy-meta strong { color: #d9f7ff; font-weight: 650; }
+    .energy-track { height: 11px; border-radius: 20px; background: #061126; border: 1px solid #31558399; padding: 2px; overflow: hidden; box-shadow: inset 0 2px 5px #0009; }
+    .energy-fill { width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#2877ff,#3ed9ff 72%,#adffff); box-shadow: 0 0 12px #32bdff; transition: width .25s ease; }
+    .tap-screen { flex: 1; display: flex; flex-direction: column; }
+    .game-area { flex: 1; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    .hint { color: #8fa9ce; font-size: 12px; margin-bottom: 18px; }
+    .coin-button { position: relative; width: min(58vw, 238px); aspect-ratio: 1; border: 0; border-radius: 50%; cursor: pointer; outline: 0; background: transparent; touch-action: manipulation; filter: drop-shadow(0 25px 24px rgba(0,0,0,.45)); transition: transform .09s ease; }
+    .coin-button:active, .coin-button.pressed { transform: scale(.91); }
+    .coin-outer { position: absolute; inset: 0; border-radius: 50%; padding: 8px; background: linear-gradient(145deg,#fff09a 0%,#f5c13d 17%,#8b4d08 48%,#ffdf61 72%,#805012 100%); box-shadow: 0 0 0 2px #ffdf7a, 0 0 18px #ffca5088, 0 0 54px #208fff55, inset 0 2px 2px #fff8; }
+    .coin-face { width: 100%; height: 100%; display: grid; place-items: center; position: relative; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 34% 23%, #fff4ad 0, #ffdc62 17%, #eaa524 43%, #a95d0a 72%, #633309 100%); border: 2px solid #ffe78a; box-shadow: inset 0 0 0 5px #c9821877, inset 0 0 18px #6e3609aa, inset 0 8px 14px #fff4; }
+    .coin-face::before { content: ""; position: absolute; inset: 9%; border-radius: 50%; border: 2px solid rgba(255,242,165,.77); box-shadow: 0 0 8px #fff4a966, inset 0 0 10px #fff3; }
+    .coin-face::after { content: ""; position: absolute; width: 75%; height: 35%; top: 8%; left: -4%; transform: rotate(-27deg); border-radius: 50%; background: linear-gradient(180deg,#fff9d866,transparent); filter: blur(4px); }
+    .coin-emoji { position: relative; z-index: 1; font-size: clamp(83px, 22vw, 126px); line-height: 1; filter: drop-shadow(0 8px 4px #5d310899); transform: translateY(-1px); }
+    .coin-glow { position: absolute; width: 92%; height: 25%; bottom: -15%; background: #138dff; filter: blur(35px); opacity: .38; border-radius: 50%; }
+    .coin-button.pressed .coin-face { filter: brightness(1.12); }
+    .float-plus { position: absolute; z-index: 3; pointer-events: none; font-size: 22px; font-weight: 850; color: #8cf5ff; text-shadow: 0 0 12px #23aaff, 0 2px 3px #001127; animation: rise .78s ease-out forwards; }
+    @keyframes rise { 0% { opacity: 0; transform: translate(-50%,0) scale(.72); } 18% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-92px) scale(1.12); } }
+    .status { min-height: 22px; margin-top: 16px; color: #91acd1; font-size: 12px; text-align: center; }
+    .status.error { color: #ff9cac; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 6px; border: 1px solid #284875; border-radius: 18px; background: rgba(7,20,46,.9); box-shadow: 0 8px 32px #02091488; }
+    .tab { min-height: 48px; border: 0; border-radius: 13px; color: #91a9cc; background: transparent; font: inherit; font-size: 13px; font-weight: 750; cursor: pointer; }
+    .tab.active { color: #e5fbff; background: linear-gradient(110deg,#1457a9,#087cb2); box-shadow: 0 0 18px #128fff55, inset 0 1px #ffffff22; }
+    .store-screen { display: none; flex: 1; padding-top: 8px; }
+    .store-screen.visible { display: block; }
+    .tap-screen.hidden { display: none; }
+    .store-title { margin: 15px 2px 5px; font-size: 20px; font-weight: 800; }
+    .store-subtitle { margin: 0 2px 16px; color: #91a9cc; font-size: 12px; }
+    .reward { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; margin: 10px 0; border-radius: 17px; background: linear-gradient(135deg,rgba(19,47,92,.9),rgba(9,25,54,.92)); border: 1px solid #3779b866; box-shadow: inset 0 1px #ffffff0b; }
+    .reward-title { font-weight: 750; font-size: 14px; }
+    .reward-cost { color: #a2bad9; font-size: 11px; margin-top: 5px; }
+    .redeem { flex: 0 0 auto; border: 1px solid #53dbff88; border-radius: 11px; padding: 10px 12px; color: #dffbff; background: linear-gradient(135deg,#13509c,#087d9e); font: inherit; font-size: 11px; font-weight: 750; box-shadow: 0 0 14px #0caaff22; }
+    .redeem:disabled { opacity: .4; }
+    .store-note { padding: 11px 12px; border-radius: 13px; color: #9db7da; background: #10254a99; border: 1px solid #31527a66; font-size: 11px; line-height: 1.8; margin-top: 14px; }
+    .loading { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; background: #07132df2; color: #c2efff; font-size: 14px; }
+    .loading[hidden] { display: none; }
+    @media (max-height: 720px) { .top { margin-bottom: 12px; } .balance-card { padding: 13px 15px; } .game-area { min-height: 250px; } .coin-button { width: min(48vw, 205px); } }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">در حال اتصال امن به بازی…</div>
+  <main class="app">
+    <header class="top">
+      <div class="brand"><span class="brand-mark">V</span><span>VORTEX NET</span></div>
+      <div class="profile" aria-label="پروفایل">✦</div>
+    </header>
+
+    <section class="balance-card" aria-label="موجودی و انرژی">
+      <div class="balance-label"><span>موجودی سکه</span><span>•</span><span>حساب متصل</span></div>
+      <div class="balance"><span id="coins">—</span><span class="balance-coin">🪙</span></div>
+      <div class="energy-wrap">
+        <div class="energy-meta"><strong>⚡ انرژی</strong><span id="energyText">— / ۱۰۰۰</span></div>
+        <div class="energy-track"><div class="energy-fill" id="energyFill"></div></div>
+      </div>
+    </section>
+
+    <section class="tap-screen" id="tapScreen">
+      <div class="game-area">
+        <div class="hint">برای جمع‌کردن سکه روی سکه بزنید</div>
+        <button class="coin-button" id="coinButton" aria-label="زدن سکه">
+          <span class="coin-outer"><span class="coin-face"><span class="coin-emoji">🪙</span></span></span>
+          <span class="coin-glow"></span>
+        </button>
+        <div class="status" id="status">هر ضربهٔ تأییدشده یک سکه می‌دهد</div>
+      </div>
+    </section>
+
+    <section class="store-screen" id="storeScreen">
+      <h1 class="store-title">فروشگاه پاداش‌ها</h1>
+      <p class="store-subtitle">سکه‌ها برای این حساب ذخیره می‌شوند.</p>
+      <article class="reward"><div><div class="reward-title">۵۰۰ مگابایت VPN</div><div class="reward-cost">۵٬۰۰۰ سکه</div></div><button class="redeem" data-reward="vpn_500mb">دریافت</button></article>
+      <article class="reward"><div><div class="reward-title">۱ گیگابایت VPN</div><div class="reward-cost">۱۰٬۰۰۰ سکه</div></div><button class="redeem" data-reward="vpn_1gb">دریافت</button></article>
+      <article class="reward"><div><div class="reward-title">۱۰٪ تخفیف خرید اشتراک</div><div class="reward-cost">۶۰٬۰۰۰ سکه</div></div><button class="redeem" data-reward="discount_10">دریافت</button></article>
+      <div class="store-note">با ثبت درخواست، سکه‌ها از موجودی شما رزرو می‌شوند. ادمین پس از بررسی، لینک VPN یا کد/اطلاعات تخفیف را می‌فرستد. اگر درخواست رد شود، سکه‌ها برمی‌گردند.</div>
+    </section>
+
+    <nav class="tabs" aria-label="بخش‌های بازی">
+      <button class="tab active" id="tapTab">⚡ بازی</button>
+      <button class="tab" id="storeTab">✦ فروشگاه</button>
+    </nav>
+  </main>
+
+  <script>
+    (() => {
+      const tg = window.Telegram?.WebApp;
+      const loading = document.getElementById('loading');
+      const status = document.getElementById('status');
+      const coinButton = document.getElementById('coinButton');
+      const tapScreen = document.getElementById('tapScreen');
+      const storeScreen = document.getElementById('storeScreen');
+      const tapTab = document.getElementById('tapTab');
+      const storeTab = document.getElementById('storeTab');
+      let coins = 0, energy = 0, capacity = 1000, serverTime = Date.now() / 1000;
+      let queued = 0, sending = false, timer = null;
+
+      if (!tg || !tg.initData) {
+        loading.textContent = 'این بازی را از دکمهٔ «شروع بازی» داخل ربات تلگرام باز کنید.';
+        return;
+      }
+      tg.ready();
+      tg.expand();
+      tg.setHeaderColor?.('#07132d');
+      tg.setBackgroundColor?.('#07132d');
+
+      async function api(path, body) {
+        const response = await fetch(path, {
+          method: body ? 'POST' : 'GET',
+          headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': tg.initData },
+          body: body ? JSON.stringify(body) : undefined,
+          cache: 'no-store'
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || 'ارتباط با سرور انجام نشد');
+        return data;
+      }
+      function fmt(n) { return Math.floor(n).toLocaleString('fa-IR'); }
+      function setStatus(text, error = false) {
+        status.textContent = text;
+        status.classList.toggle('error', error);
+      }
+      function render() {
+        const elapsed = Math.max(0, Date.now() / 1000 - serverTime);
+        const currentEnergy = Math.min(capacity, energy + elapsed / 3);
+        document.getElementById('coins').textContent = fmt(coins);
+        document.getElementById('energyText').textContent = `${fmt(currentEnergy)} / ${fmt(capacity)}`;
+        document.getElementById('energyFill').style.width = `${Math.max(0, currentEnergy / capacity * 100)}%`;
+        document.querySelectorAll('.redeem').forEach(button => {
+          const cost = button.dataset.reward === 'vpn_500mb' ? 5000 : button.dataset.reward === 'vpn_1gb' ? 10000 : 60000;
+          button.disabled = coins < cost;
+        });
+      }
+      function applyState(data) {
+        coins = data.coins;
+        energy = data.energy;
+        capacity = data.capacity;
+        serverTime = data.server_time;
+        render();
+      }
+      function floatPlus(event) {
+        const rect = coinButton.getBoundingClientRect();
+        const item = document.createElement('span');
+        item.className = 'float-plus';
+        item.textContent = '+1';
+        item.style.left = `${(event?.clientX || rect.left + rect.width / 2) - rect.left}px`;
+        item.style.top = `${(event?.clientY || rect.top + rect.height / 2) - rect.top}px`;
+        coinButton.appendChild(item);
+        setTimeout(() => item.remove(), 850);
+      }
+      function scheduleFlush(delay = 90) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(flushTaps, delay);
+      }
+      async function flushTaps() {
+        timer = null;
+        if (sending || queued < 1) return;
+        sending = true;
+        const batch = Math.min(10, queued);
+        queued -= batch;
+        try {
+          const result = await api('/api/tap', { taps: batch });
+          applyState(result);
+          if (result.accepted < batch) setStatus('انرژی کافی نیست؛ با گذشت زمان دوباره شارژ می‌شود.');
+          else setStatus('هر ضربهٔ تأییدشده یک سکه می‌دهد');
+        } catch (error) {
+          queued += batch;
+          setStatus(error.message, true);
+          scheduleFlush(1800);
+        } finally {
+          sending = false;
+          if (queued > 0 && timer === null) scheduleFlush(100);
+        }
+      }
+      coinButton.addEventListener('pointerdown', event => {
+        event.preventDefault();
+        coinButton.classList.add('pressed');
+        setTimeout(() => coinButton.classList.remove('pressed'), 100);
+        tg.HapticFeedback?.impactOccurred('light');
+        floatPlus(event);
+        queued += 1;
+        if (!sending && queued >= 10) scheduleFlush(0);
+        else if (!sending) scheduleFlush(90);
+      });
+      function chooseTab(which) {
+        const store = which === 'store';
+        tapScreen.classList.toggle('hidden', store);
+        storeScreen.classList.toggle('visible', store);
+        tapTab.classList.toggle('active', !store);
+        storeTab.classList.toggle('active', store);
+      }
+      tapTab.addEventListener('click', () => chooseTab('tap'));
+      storeTab.addEventListener('click', () => chooseTab('store'));
+      document.querySelectorAll('.redeem').forEach(button => {
+        button.addEventListener('click', async () => {
+          const rewardLabels = { vpn_500mb: '۵۰۰ مگابایت VPN', vpn_1gb: '۱ گیگابایت VPN', discount_10: 'تخفیف ۱۰٪' };
+          const reward = button.dataset.reward;
+          button.disabled = true;
+          try {
+            const result = await api('/api/redeem', { reward });
+            coins = result.coins;
+            render();
+            setStatus(result.message);
+            tg.HapticFeedback?.notificationOccurred('success');
+            tg.showPopup?.({ title: 'درخواست ثبت شد', message: `درخواست ${rewardLabels[reward]} برای ادمین ارسال شد.`, buttons: [{ type: 'ok' }] });
+          } catch (error) {
+            setStatus(error.message, true);
+            tg.HapticFeedback?.notificationOccurred('error');
+            tg.showPopup?.({ title: 'ثبت نشد', message: error.message, buttons: [{ type: 'ok' }] });
+          } finally { render(); }
+        });
+      });
+
+      api('/api/state').then(data => {
+        applyState(data);
+        loading.hidden = true;
+        setInterval(render, 1000);
+        setInterval(() => api('/api/state').then(applyState).catch(() => {}), 15000);
+      }).catch(error => {
+        loading.textContent = error.message.includes('expired')
+          ? 'نشست بازی منقضی شده؛ بازی را دوباره از ربات باز کنید.'
+          : `اتصال برقرار نشد: ${error.message}`;
+      });
+    })();
+  </script>
+</body>
+</html>
